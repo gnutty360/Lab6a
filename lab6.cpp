@@ -14,6 +14,7 @@ using namespace std;
 //Signal Class
 class Signal{
 	public:
+		string fileName;
 		int length;
 		double max_value;
 		double average;
@@ -37,7 +38,7 @@ Signal::Signal(){
 	
 	fstream dataFile;
 	int i;
-	
+	this->fileName = DEFAULT_DATA_FILE;
 	//Open the default data file
 	dataFile.open(DEFAULT_DATA_FILE);
 	
@@ -113,6 +114,7 @@ Signal::Signal(int L){
 	//Append the converted integers into the file name template
 	fileName = std::string("Raw_data_") + tens + ones + ".txt";
 	
+	this->fileName = fileName;
 	//Open the correct file
 	dataFile.open(ptrFileName);
 	
@@ -160,7 +162,7 @@ Signal::Signal(int L){
 Signal::Signal(char* fileName){
 	fstream dataFile;
 	int i;
-	
+	this->fileName = fileName;
 	//Open the data file
 	dataFile.open(fileName);
 	
@@ -208,6 +210,15 @@ Signal::Signal(char* fileName){
 }
 
 
+/*FUNCTIONS*/
+void optionMenu(Signal*);
+void helpMenu();
+void scale(Signal*);
+void offset(Signal*);
+void rename(Signal*);
+void statistics(Signal*);
+void center(Signal*);
+void normalize(Signal*);
 
 int main(int argc, char** argv){
 	Signal* dataSignal;
@@ -262,9 +273,51 @@ int main(int argc, char** argv){
 		
 		
 	//Data manipulation here
-
-
 	
+	//Set a known value for the userInput2
+	userInput2 = 'p';
+	//Data manipultion loop
+	while(1){
+		//Print the option Menu
+		optionMenu(dataSignal);
+		//Grab user input
+		cin>> userInput2;
+		//Convert input to uppercase
+		if(islower(userInput2)){
+			userInput2 = toupper(userInput2);
+		}
+		//Switch input and call appropriate functions
+		switch(userInput2){
+		case 'S':
+			scale(dataSignal);
+			break;
+		case 'O':
+			offset(dataSignal);
+			break;
+		case 'R':
+			rename(dataSignal);
+			break;
+		case 'T':
+			statistics(dataSignal);
+			break;
+		case 'C':
+			center(dataSignal);
+			break;
+		case 'N':
+			normalize(dataSignal);
+			break;
+		case 'Q':
+			break;
+		default:
+			cout<<"Invalid input!"<<endl;
+			break;
+		}
+		
+		if(userInput2 == 'Q'){
+			break;
+		}
+	
+	}
 	cout<<"Would you like to manipulate another signal?(Y N)"<<endl;
 	cin >> userInput2;
 	while( userInput2 != 'y' && userInput2 != 'Y' && userInput2 != 'n' && userInput2 != 'N'){
@@ -283,10 +336,148 @@ int main(int argc, char** argv){
 return(0);
 }
 
+void optionMenu(Signal* dataSignal){
+	
+	cout<<"What would you like to do with the signal from "<<dataSignal->fileName<<"?"<<endl;
+	cout<<"(S) : Scale the data\n"
+		<<"(O) : Offset the data\n"
+		<<"(R) : Rename the data file\n"
+		<<"(T) : Print statistics for the data\n"
+		<<"(C) : Center the data\n"
+		<<"(N) : Normalize the data\n"
+		<<"(Q) : Quit"<<endl;
+	return;
+}
+
+void helpMenu(){
+	cout<<"\n****************HELP MESSAGE****************"<<endl;
+
+	
+	return;
+}
 
 
-
-
+void scale(Signal* dataSignal){
+	double scaleValue;
+	int i;
+	string newFileName = std::string("Scaled_") + dataSignal->fileName;
+	const char* fileNamePointer = newFileName.c_str();
+	ofstream outputFile(fileNamePointer);
+	
+	//Check that the file was opened
+	if(!outputFile.is_open()){
+		cout<<"Could not open "<<newFileName<<"! Quitting Scale!"<<endl;
+		return;
+	}
+	
+	cout<<"Please enter the value you wish to scale the data by:"<<endl;
+	cin >> scaleValue;
+	
+	//Check that the user input is a double type
+	while(cin.fail()){
+		cin.clear();
+		fflush(stdin);
+		cout<<"Invalid input! Please enter a number!"<<endl;
+		cin >> scaleValue;
+	}
+	
+	//Print the length, max_value, length and updated max_value to the output file
+	outputFile << dataSignal->length
+				<< " "<<dataSignal->max_value;
+	outputFile <<"\t\t\t"<<dataSignal->length<<" "<<(dataSignal->max_value)*scaleValue<<endl;
+	
+	//Print the data and the scaled data to the output file
+	for(i = 0; i < dataSignal->length; i++){
+		outputFile<<dataSignal->data[i]<<"\t\t\t"<<(dataSignal->data[i])*scaleValue<<endl;
+	}
+	
+	//Close the file
+	outputFile.close();
+	
+	return;
+	
+	
+}
+void offset(Signal* dataSignal){
+	double offsetValue;
+	int i;
+	string newFileName = std::string("Offset_") + dataSignal->fileName;
+	const char* fileNamePointer = newFileName.c_str();
+	ofstream outputFile(fileNamePointer);
+	
+	//Check that the file was opened
+	if(!outputFile.is_open()){
+		cout<<"Could not open "<<newFileName<<"! Quitting Offset!"<<endl;
+		return;
+	}
+	
+	cout<<"Please enter the value you wish to offset the data by:"<<endl;
+	cin >> offsetValue;
+	
+	//Check that the user input is a double type
+	while(cin.fail()){
+		cin.clear();
+		fflush(stdin);
+		cout<<"Invalid input! Please enter a number!"<<endl;
+		cin >> offsetValue;
+	}
+	
+	//Print the length, max_value, length and updated max_value to the output file
+	outputFile << dataSignal->length
+				<< " "<<dataSignal->max_value;
+	outputFile <<"\t\t\t"<<dataSignal->length<<" "<<(dataSignal->max_value)+offsetValue<<endl;
+	
+	//Print the data and the offset data to the output file
+	for(i = 0; i < dataSignal->length; i++){
+		outputFile<<dataSignal->data[i]<<"\t\t\t"<<(dataSignal->data[i])+offsetValue<<endl;
+	}
+	
+	//Close the file
+	outputFile.close();
+	
+	return;
+}
+void rename(Signal* dataSignal){
+	int i;
+	string newFileName;
+	const char* fileNamePointer = newFileName.c_str();
+	
+	cout<<"Please enter the new file name:"<<endl;
+	cin >> newFileName;
+	
+	newFileName += ".txt";
+	
+	ofstream outputFile(fileNamePointer);
+	
+	if(!outputFile.is_open()){
+		cout<<"Could not open "<<newFileName<<"! Quitting Rename!"<<endl;
+		return;
+	}
+	
+	//Print the length and the max_value to the new file
+	outputFile << dataSignal->length
+				<< " "<<dataSignal->max_value<<endl;
+	
+	//Print the data to the new file
+	for(i = 0; i < dataSignal->length; i++){
+		outputFile<<dataSignal->data[i]<<endl;
+	}
+	
+	//Close the file
+	outputFile.close();
+	
+	return;
+	
+}
+void statistics(Signal* dataSignal){
+	
+}
+void center(Signal* dataSignal){
+	
+}
+void normalize(Signal* dataSignal){
+	
+}
 
 
 
