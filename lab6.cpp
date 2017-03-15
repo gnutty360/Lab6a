@@ -1,3 +1,4 @@
+
 /*Marshal Lindsay
  *14211662
  *ECE32220
@@ -36,8 +37,6 @@ class Signal{
 };
 //Destructor
 Signal::~Signal(){
-	
-	cout<<"Destructor"<<endl;
 	delete [] data;
 
 }
@@ -89,6 +88,7 @@ Signal::Signal(){
 	
 	//Close the data file. 
 	dataFile.close();
+	calcAvg();
 	return;
 }
 //Integer Input Constructor
@@ -164,6 +164,7 @@ Signal::Signal(int L){
 	}
 	
 	dataFile.close();
+	calcAvg();
 	return;
 }
 //Char* constructor
@@ -213,6 +214,8 @@ Signal::Signal(char* fileName){
 	
 	//Close the data file. 
 	dataFile.close();
+	
+	calcAvg();
 	return;
 
 }
@@ -263,23 +266,53 @@ void Signal::center(){
 
 void Signal::normalize(){
 	int i;
-	this->max_value /= this->max_value;
+	
 	for(i = 0; i < this->length; i++){
 		this->data[i] /= this->max_value;
 	}
+	this->max_value /= this->max_value;
 	calcAvg();
 	return;
 }
 
 void Signal::Sig_info(){
+	//Print the information about the signal/data
+	cout<<"\nNumber of data points (length): "<<this->length
+		<<"\nMaximum value (max_value): "<<this->max_value
+		<<"\nAverage of data (average): "<<this->average<<"\n"<<endl;
+		
+	return;
 	
 }
 void Signal::Save_file(string newFileName){
+	newFileName = std::string(newFileName) + ".txt";
+	const char* newFilePtr = newFileName.c_str();
+	
+	//open save file
+	
+	ofstream saveFile(newFilePtr);
+	int i;
+	
+	//Save the Length, Max Value, and the data to the save file
+	saveFile << this->length<< " " << this->max_value<<endl;
+	
+	for(i = 0; i < this->length; i++){
+		saveFile<< this->data[i]<<endl;
+	}
+	
+	//Close the file
+	saveFile.close();
+	return;
+	
 }
 
 /*FUNCTIONS*/
 void optionMenu();
 void helpMenu();
+double scaling();
+double offsetting();
+string fileSave();
+
 
 
 int main(int argc, char** argv){
@@ -352,12 +385,14 @@ int main(int argc, char** argv){
 			userInput2 = toupper(userInput2);
 		}
 		//Switch input and call appropriate functions
-		value = 1;
+
 		switch(userInput2){
 		case 'S':
+			value = scaling();
 			dataSignal->scale(value);
 			break;
 		case 'O':
+			value = offsetting();
 			dataSignal->offset(value);
 			break;
 		case 'P':
@@ -370,6 +405,7 @@ int main(int argc, char** argv){
 			dataSignal->normalize();
 			break;
 		case 'V':
+			newFileName = fileSave();
 			dataSignal->Save_file(newFilePtr);
 			break;
 		case 'Q':
@@ -415,137 +451,48 @@ void optionMenu(){
 	return;
 }
 
-void helpMenu(){
-	cout<<"\n****************HELP MESSAGE****************"<<endl;
-
-	
-	return;
-}
-
-/*
-void scale(Signal* dataSignal){
-	double scaleValue;
-	int i;
-	string newFileName = std::string("Scaled_") + dataSignal->fileName;
-	const char* fileNamePointer = newFileName.c_str();
-	ofstream outputFile(fileNamePointer);
-	
-	//Check that the file was opened
-	if(!outputFile.is_open()){
-		cout<<"Could not open "<<newFileName<<"! Quitting Scale!"<<endl;
-		return;
-	}
+double scaling(){
+	double value;
 	
 	cout<<"Please enter the value you wish to scale the data by:"<<endl;
-	cin >> scaleValue;
+	cin >> value;
 	
 	//Check that the user input is a double type
 	while(cin.fail()){
 		cin.clear();
 		fflush(stdin);
 		cout<<"Invalid input! Please enter a number!"<<endl;
-		cin >> scaleValue;
+		cin >> value;
 	}
 	
-	//Print the length, max_value, length and updated max_value to the output file
-	outputFile << dataSignal->length
-				<< " "<<dataSignal->max_value;
-	outputFile <<"\t\t\t"<<dataSignal->length<<" "<<(dataSignal->max_value)*scaleValue<<endl;
-	
-	//Print the data and the scaled data to the output file
-	for(i = 0; i < dataSignal->length; i++){
-		outputFile<<dataSignal->data[i]<<"\t\t\t"<<(dataSignal->data[i])*scaleValue<<endl;
-	}
-	
-	//Close the file
-	outputFile.close();
-	
-	return;
-	
+	return(value);
 	
 }
 
-void offset(Signal* dataSignal){
-	double offsetValue;
-	int i;
-	string newFileName = std::string("Offset_") + dataSignal->fileName;
-	const char* fileNamePointer = newFileName.c_str();
-	ofstream outputFile(fileNamePointer);
-	
-	//Check that the file was opened
-	if(!outputFile.is_open()){
-		cout<<"Could not open "<<newFileName<<"! Quitting Offset!"<<endl;
-		return;
-	}
+double offsetting(){
+	double value;
 	
 	cout<<"Please enter the value you wish to offset the data by:"<<endl;
-	cin >> offsetValue;
+	cin >> value;
 	
 	//Check that the user input is a double type
 	while(cin.fail()){
 		cin.clear();
 		fflush(stdin);
 		cout<<"Invalid input! Please enter a number!"<<endl;
-		cin >> offsetValue;
+		cin >> value;
 	}
 	
-	//Print the length, max_value, length and updated max_value to the output file
-	outputFile << dataSignal->length
-				<< " "<<dataSignal->max_value;
-	outputFile <<"\t\t\t"<<dataSignal->length<<" "<<(dataSignal->max_value)+offsetValue<<endl;
+	return(value);
 	
-	//Print the data and the offset data to the output file
-	for(i = 0; i < dataSignal->length; i++){
-		outputFile<<dataSignal->data[i]<<"\t\t\t"<<(dataSignal->data[i])+offsetValue<<endl;
-	}
-	
-	//Close the file
-	outputFile.close();
-	
-	return;
 }
-void rename(Signal* dataSignal){
-	int i;
+
+string fileSave(){
 	string newFileName;
-	const char* fileNamePointer = newFileName.c_str();
 	
-	cout<<"Please enter the new file name:"<<endl;
-	cin >> newFileName;
+	cout<<"Please enter the name of the file to save the updated data to:"<<endl;
+	cin>> newFileName;
 	
-	newFileName += ".txt";
-	
-	ofstream outputFile(fileNamePointer);
-	
-	if(!outputFile.is_open()){
-		cout<<"Could not open "<<newFileName<<"! Quitting Rename!"<<endl;
-		return;
-	}
-	
-	//Print the length and the max_value to the new file
-	outputFile << dataSignal->length
-				<< " "<<dataSignal->max_value<<endl;
-	
-	//Print the data to the new file
-	for(i = 0; i < dataSignal->length; i++){
-		outputFile<<dataSignal->data[i]<<endl;
-	}
-	
-	//Close the file
-	outputFile.close();
-	
-	return;
-	
+	return(newFileName);
 }
-void statistics(Signal* dataSignal){
-	
-}
-void center(Signal* dataSignal){
-	
-}
-void normalize(Signal* dataSignal){
-	
-}
-*/
-
-
 
