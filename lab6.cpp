@@ -13,13 +13,21 @@ using namespace std;
 #define DEFAULT_DATA_FILE "defaultData.txt"
 //Signal Class
 class Signal{
-	public:
+	private:
 		string fileName;
 		int length;
 		double max_value;
 		double average;
 		double* data;
+		
 	public:
+		void calcAvg();
+		void scale(double);
+		void offset(double);
+		void center();
+		void normalize();
+		void Sig_info();
+		void Save_file(string);
 		Signal();
 		Signal(int);
 		Signal(char*);
@@ -209,22 +217,79 @@ Signal::Signal(char* fileName){
 
 }
 
+void Signal::calcAvg(){
+	double total = 0;
+	int i;
+	for(i = 0; i < this->length; i++){
+		total += data[i];
+	}
+	this->average = (double)(total) / this->length;
+	return;
+}
+
+void Signal::scale(double scaledValue){
+	int i;
+	this->max_value *= scaledValue;
+	
+	for(i = 0; i < this->length; i++){
+		this->data[i] *= scaledValue;
+	}
+	calcAvg();
+	
+	return;
+}
+
+void Signal::offset(double offsetValue){
+	int i;
+	this->max_value += offsetValue;
+	
+	for(i = 0; i < this->length; i++){
+		this->data[i] += offsetValue;
+	}
+	calcAvg();
+	
+	return;
+}
+
+void Signal::center(){
+	int i;
+	this->max_value -= this->average;
+	for(i = 0; i < this->length; i++){
+		this->data[i] -= this->average;
+	}
+	calcAvg();
+	return;
+}
+
+void Signal::normalize(){
+	int i;
+	this->max_value /= this->max_value;
+	for(i = 0; i < this->length; i++){
+		this->data[i] /= this->max_value;
+	}
+	calcAvg();
+	return;
+}
+
+void Signal::Sig_info(){
+	
+}
+void Signal::Save_file(string newFileName){
+}
 
 /*FUNCTIONS*/
-void optionMenu(Signal*);
+void optionMenu();
 void helpMenu();
-void scale(Signal*);
-void offset(Signal*);
-void rename(Signal*);
-void statistics(Signal*);
-void center(Signal*);
-void normalize(Signal*);
+
 
 int main(int argc, char** argv){
 	Signal* dataSignal;
+	double value;
 	int userInput1;
 	char userInput2;
 	char fileName[25];
+	string newFileName;
+	const char* newFilePtr = newFileName.c_str();
 
 	
 	cout<<"\n****Lab6****"<<endl;
@@ -279,7 +344,7 @@ int main(int argc, char** argv){
 	//Data manipultion loop
 	while(1){
 		//Print the option Menu
-		optionMenu(dataSignal);
+		optionMenu();
 		//Grab user input
 		cin>> userInput2;
 		//Convert input to uppercase
@@ -287,24 +352,25 @@ int main(int argc, char** argv){
 			userInput2 = toupper(userInput2);
 		}
 		//Switch input and call appropriate functions
+		value = 1;
 		switch(userInput2){
 		case 'S':
-			scale(dataSignal);
+			dataSignal->scale(value);
 			break;
 		case 'O':
-			offset(dataSignal);
+			dataSignal->offset(value);
 			break;
-		case 'R':
-			rename(dataSignal);
-			break;
-		case 'T':
-			statistics(dataSignal);
+		case 'P':
+			dataSignal->Sig_info();
 			break;
 		case 'C':
-			center(dataSignal);
+			dataSignal->center();
 			break;
 		case 'N':
-			normalize(dataSignal);
+			dataSignal->normalize();
+			break;
+		case 'V':
+			dataSignal->Save_file(newFilePtr);
 			break;
 		case 'Q':
 			break;
@@ -336,15 +402,15 @@ int main(int argc, char** argv){
 return(0);
 }
 
-void optionMenu(Signal* dataSignal){
+void optionMenu(){
 	
-	cout<<"What would you like to do with the signal from "<<dataSignal->fileName<<"?"<<endl;
+	cout<<"What would you like to do with the signal?"<<endl;
 	cout<<"(S) : Scale the data\n"
 		<<"(O) : Offset the data\n"
-		<<"(R) : Rename the data file\n"
-		<<"(T) : Print statistics for the data\n"
+		<<"(P) : Print statistics for the data\n"
 		<<"(C) : Center the data\n"
 		<<"(N) : Normalize the data\n"
+		<<"(V) : Save data to file\n"
 		<<"(Q) : Quit"<<endl;
 	return;
 }
@@ -356,7 +422,7 @@ void helpMenu(){
 	return;
 }
 
-
+/*
 void scale(Signal* dataSignal){
 	double scaleValue;
 	int i;
@@ -398,6 +464,7 @@ void scale(Signal* dataSignal){
 	
 	
 }
+
 void offset(Signal* dataSignal){
 	double offsetValue;
 	int i;
@@ -478,7 +545,7 @@ void center(Signal* dataSignal){
 void normalize(Signal* dataSignal){
 	
 }
-
+*/
 
 
 
