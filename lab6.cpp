@@ -20,9 +20,12 @@ class Signal{
 		double max_value;
 		double average;
 		double* data;
+		void calcAvg();
+		double maxValue();
 		
 	public:
-		void calcAvg();
+	
+		//void calcAvg();//private
 		void scale(double);
 		void offset(double);
 		void center();
@@ -232,11 +235,12 @@ void Signal::calcAvg(){
 
 void Signal::scale(double scaledValue){
 	int i;
-	this->max_value *= scaledValue;
+	
 	
 	for(i = 0; i < this->length; i++){
 		this->data[i] *= scaledValue;
 	}
+	this->max_value = maxValue();
 	calcAvg();
 	
 	return;
@@ -244,11 +248,12 @@ void Signal::scale(double scaledValue){
 
 void Signal::offset(double offsetValue){
 	int i;
-	this->max_value += offsetValue;
+	
 	
 	for(i = 0; i < this->length; i++){
 		this->data[i] += offsetValue;
 	}
+	this->max_value = maxValue();
 	calcAvg();
 	
 	return;
@@ -256,10 +261,11 @@ void Signal::offset(double offsetValue){
 
 void Signal::center(){
 	int i;
-	this->max_value -= this->average;
+	
 	for(i = 0; i < this->length; i++){
 		this->data[i] -= this->average;
 	}
+	this->max_value = maxValue();
 	calcAvg();
 	return;
 }
@@ -270,11 +276,22 @@ void Signal::normalize(){
 	for(i = 0; i < this->length; i++){
 		this->data[i] /= this->max_value;
 	}
-	this->max_value /= this->max_value;
+	this->max_value = maxValue();
 	calcAvg();
 	return;
 }
 
+double Signal::maxValue(){
+	
+	double hold = this->data[0];
+	int i;
+	for(i = 0; i < this->length; i++){
+		if(hold < this->data[i]){
+			hold = this->data[i];
+		}
+	}
+	return (hold);
+}
 void Signal::Sig_info(){
 	//Print the information about the signal/data
 	cout<<"\nNumber of data points (length): "<<this->length
@@ -317,7 +334,6 @@ string fileSave();
 
 int main(int argc, char** argv){
 	Signal* dataSignal;
-	double value;
 	int userInput1;
 	char userInput2;
 	char fileName[25];
@@ -394,12 +410,10 @@ int main(int argc, char** argv){
 
 		switch(userInput2){
 		case 'S':
-			value = scaling();
-			dataSignal->scale(value);
+			dataSignal->scale(scaling());
 			break;
 		case 'O':
-			value = offsetting();
-			dataSignal->offset(value);
+			dataSignal->offset(offsetting());
 			break;
 		case 'P':
 			dataSignal->Sig_info();
@@ -438,7 +452,7 @@ int main(int argc, char** argv){
 		break;
 		}
 		
-		
+	delete dataSignal;
 	
 	}
 return(0);
