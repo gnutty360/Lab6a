@@ -365,6 +365,12 @@ int main(int argc, char** argv){
 			}else{
 				cout<<"\nPlease enter the file number to be opened:"<<endl;
 				cin >> userInput1;
+				while(cin.fail()){
+					cin.clear();
+					fflush(stdin);
+					cout<<"Invalid input! Please enter a number!"<<endl;
+					cin >> userInput1;
+				}
 				dataSignal = new Signal(userInput1);
 			}
 		}
